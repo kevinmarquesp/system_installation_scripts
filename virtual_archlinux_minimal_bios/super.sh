@@ -125,9 +125,14 @@ function execute_setup_routine {
 #@ SCRIPT BODY -----------------------------------------------------------------
 
 clear
-printf "\n\n"
-printf "Info: ...\n"  #todo: add a description for this script (useful at run time)
-printf "\n\n"
+printf -- "\n\n"
+printf -- "Info: This script is meant to be running inside an Arch Linux live ISO\n"
+printf -- "environment, also, it was created to setup a specific kind of virtual\n"
+printf -- "machine (do not run this on your real hardware without checking what it\n"
+printf -- "does first): A BIOS system with a /boot partition, a swap -- both 512MB\n"
+printf -- "-- and a BTRFS partition with a @ subvolume for the / and @home for the\n"
+printf -- "/home. Hope it works just fine for you and good luck!\n"
+printf -- "\n\n"
 read -sn1
 
 runn --ignore "loadkeys ${keymap}"
