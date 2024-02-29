@@ -85,7 +85,7 @@ then
     exit 1
 fi
 
-curl "${curl_root}/include/exec.sh" -so "exec.sh" && . exec.sh
+curl "${curl_root}/include/runn.sh" -so "runn.sh" && . runn.sh
 
 
 #@ UTILITY FUNCTIONS -----------------------------------------------------------
@@ -116,8 +116,8 @@ function execute_setup_routine {
 
 #@ SCRIPT BODY -----------------------------------------------------------------
 
-exec --ignore "loadkeys ${keymap}"
-exec --ignore "timedatectl --set-timezone ${timezone}"
+runn --ignore "loadkeys ${keymap}"
+runn --ignore "timedatectl --set-timezone ${timezone}"
 
 execute_setup_routine "fdisk"    "${dry_flag}"
 execute_setup_routine "pacstrap" "${dry_flag}"
