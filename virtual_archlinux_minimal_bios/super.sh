@@ -1,14 +1,7 @@
 #note: It's important that this script can skip some parts depending of some argument values
 
 
-clear
-printf "\n\n"
-printf "Info: ...\n"  #todo: add a description for this script (useful at run time)
-printf "\n\n"
-read -sn1
-
-
-## virtual_archlinux_minimal_bios/super.sh - v0.1.0
+## virtual_archlinux_minimal_bios/super.sh - v2.1.1
 ##
 ## ... #todo: add a good helper description (useful for debug)
 ##
@@ -58,6 +51,12 @@ do
         "-t" | "--timezone")  timezone="${2}";   shift 2 ;;
         "-k" | "--keymap")    keymap="${2}";     shift 2 ;;
 
+        "-h" | "--help")
+            grep --color="never" '^## *' "${BASH_SOURCE}" |
+                sed 's/^## \?//'
+            exit
+        ;;
+
         "-s" | "--skip")
             case "${2}" in
                 "fdisk")     skip_fdisk=1    ;;
@@ -85,7 +84,7 @@ then
     exit 1
 fi
 
-curl "${curl_root}/include/runn.sh" -so "runn.sh" && . runn.sh
+curl "${curl_root}/include/runn.sh" -so "runn.sh" && . runn.sh || exit 2
 
 
 #@ UTILITY FUNCTIONS -----------------------------------------------------------
@@ -115,6 +114,12 @@ function execute_setup_routine {
 
 
 #@ SCRIPT BODY -----------------------------------------------------------------
+
+clear
+printf "\n\n"
+printf "Info: ...\n"  #todo: add a description for this script (useful at run time)
+printf "\n\n"
+read -sn1
 
 runn --ignore "loadkeys ${keymap}"
 runn --ignore "timedatectl --set-timezone ${timezone}"
