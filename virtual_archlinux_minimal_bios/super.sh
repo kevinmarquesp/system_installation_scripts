@@ -40,7 +40,7 @@ unset OPTIONS LONG_OPTIONS ARGS
 #@ PARSING ARGUMENTS -----------------------------------------------------------
 
 curl_root=""
-is_dry=0
+dry_flag=""
 skip_fdisk=0;  skip_pacstrap=0;  skip_chroot=0;
 
 #note: To add more routines, the devolper should (1) update the skip flags, (2)
@@ -52,7 +52,7 @@ while true
 do
     case "${1}" in
         "-c" | "--curl")  curl_root="${2}";  shift 2  ;;
-        "-d" | "--dry")   is_dry=1;          shift    ;;
+        "-d" | "--dry")   dry_flag="--dry";  shift    ;;
 
         "-s" | "--skip")
             case "${2}" in
@@ -87,35 +87,31 @@ curl "${curl_root}/include/exec.sh" -so "exec.sh" && . exec.sh
 #@ UTILITY FUNCTIONS -----------------------------------------------------------
 
 function execute_setup_routine {
-    local routine_name="${1}"
+    local routine_name="${1}";  shift
+    local user_flags="${@}"
     local skip="skip_${routine_name}"
 
-    if [ "${!skip}" -eq 1 ]
+    if [ "${!skip}" -eq 1 ]  #check for the global skip variable for each specific command ($1 argument)
     then
         printf "\nWarning: Skiping the %s setup routine!\n" "${routine_name}"
         return 0
     fi
 
-    printf "\nDebug: Executing the %s setup routine!\n" "${routine_name}"
-
-    [ $is_dry -eq 1 ] &&
-        return 0
-
     if [ "${routine_name}" = "chroot" ]  #the chroot script should be executed with a scaped command string!
     then
         local S_CHROOT="curl '${curl_root}/${SUPER}/source/${routine_name}.sh' -so '${routine_name}.sh' &&
-                            bash ${routine_name}.sh"
+                            bash ${routine_name}.sh ${user_flags}"
         echo -e "${S_CHROOT}\nexit\n" |
             arch-chroot /mnt
     else
         curl "${curl_root}/${SUPER}/source/${routine_name}.sh" -so "${routine_name}.sh" &&
-            bash "${routine_name}.sh"
+            eval -- "bash ${routine_name}.sh ${user_flags}"
     fi
 }
 
 
 #@ SCRIPT BODY -----------------------------------------------------------------
 
-execute_setup_routine "fdisk"
-execute_setup_routine "pacstrap"
-execute_setup_routine "chroot"  #todo: this function should accept custom arguments from here
+execute_setup_routine "fdisk"    "${dry_flag}"
+execute_setup_routine "pacstrap" "${dry_flag}"
+execute_setup_routine "chroot"   "${dry_flag}"
