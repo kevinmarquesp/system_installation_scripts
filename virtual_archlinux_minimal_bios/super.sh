@@ -1,20 +1,29 @@
-#note: It's important that this script can skip some parts depending of some argument values
-
-
-## virtual_archlinux_minimal_bios/super.sh - v2.1.1
+## virtual_archlinux_minimal_bios/super.sh - v2.2.1
 ##
-## ... #todo: add a good helper description (useful for debug)
+## This script is just an wrapper that executes other scripts in serie, covering
+## most of the installation steps. Also, these instalations is customized to
+## work better in a virtual machine, do not use it to install in your own
+## computer without changing the logic of each routine.
+##
+## In the future, this script will also cover the root and user post install
+## setup, everything will become full automatic.
+##
+## Arguments:
+##  -h --help                   Shows this help message.
+##  -d --dry                    Execute all routines but all commands will have the --dry flag too.
+##  -c --curl [curl_root]       curl address that this and other scripts will use to fetch the dependencies.
+##  -s --skip [routine]         Skip the specifyed setup/installation routine;
+##                                  Can be either "fdisk", "pacstrap" or "chroot".
+##  -t --timezone [timezone]    Timezone that this script will set, default is "America/Sao_Paulo"
+##  -k --keymap [keymap]        Keyboard layout for the instalation, default is "br-abnt2"
 ##
 ## Routines:
 ##  This super script is responsible to run a list of other scripts that I like
 ##  to call them 'routines', each routine does a specific thing, and you can
 ##  skip one or more of them.
-##      1. fdisk: ...  #todo: add a description for each routine
-##
-## Arguments:
-##  -h --help           Shows this help message.
-##  -s --skip [routine] Skip the specifyed setup/installation routine;
-##                          Can be either "fdisk", "pacstrap" or "chroot".
+##      1. fdisk:       Uses fdisk scripts to format and mount 3 partitions (boot, swap & btrfs).
+##      2. pacstrap:    Install the base packages and setup pacman.conf and fstab.
+##      3. chroot:      Will change to /mnt and finish the setup with grub, sudo, users, etc.
 
 OPTIONS="hdc:s:t:k:"
 LONG_OPTIONS="help,dry,curl:,skip:,timezone:,keymap:"
@@ -103,12 +112,12 @@ function execute_setup_routine {
     if [ "${routine_name}" = "chroot" ]  #the chroot script should be executed with a scaped command string!
     then
         local S_CHROOT="curl '${curl_root}/${SUPER}/source/${routine_name}.sh' -so '${routine_name}.sh' &&
-                            bash ${routine_name}.sh ${user_flags}"
+                            bash ${routine_name}.sh --curl ${curl_root} ${user_flags}"
         echo -e "${S_CHROOT}\nexit\n" |
             arch-chroot /mnt
     else
         curl "${curl_root}/${SUPER}/source/${routine_name}.sh" -so "${routine_name}.sh" &&
-            eval -- "bash ${routine_name}.sh ${user_flags}"
+            eval -- "bash ${routine_name}.sh --curl ${curl_root} ${user_flags}"
     fi
 }
 
