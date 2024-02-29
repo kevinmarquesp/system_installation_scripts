@@ -23,8 +23,8 @@ read -sn1
 ##  -s --skip [routine] Skip the specifyed setup/installation routine;
 ##                          Can be either "fdisk", "pacstrap" or "chroot".
 
-OPTIONS="hdc:s:"
-LONG_OPTIONS="help,dry,curl:,skip:"
+OPTIONS="hdc:s:t:k:"
+LONG_OPTIONS="help,dry,curl:,skip:,timezone:,keymap:"
 ARGS=$(getopt --options "${OPTIONS}" --longoptions "${LONG_OPTIONS}" --name "${0}" -- "${@}")
 
 if [ $? -ne 0 ]
@@ -41,6 +41,8 @@ unset OPTIONS LONG_OPTIONS ARGS
 
 curl_root=""
 dry_flag=""
+timezone="America/Sao_Paulo"
+keymap="br-abnt2"
 skip_fdisk=0;  skip_pacstrap=0;  skip_chroot=0;
 
 #note: To add more routines, the devolper should (1) update the skip flags, (2)
@@ -51,8 +53,10 @@ skip_fdisk=0;  skip_pacstrap=0;  skip_chroot=0;
 while true
 do
     case "${1}" in
-        "-c" | "--curl")  curl_root="${2}";  shift 2  ;;
-        "-d" | "--dry")   dry_flag="--dry";  shift    ;;
+        "-c" | "--curl")      curl_root="${2}";  shift 2 ;;
+        "-d" | "--dry")       dry_flag="--dry";  shift   ;;
+        "-t" | "--timezone")  timezone="${2}";   shift 2 ;;
+        "-k" | "--keymap")    keymap="${2}";     shift 2 ;;
 
         "-s" | "--skip")
             case "${2}" in
@@ -111,6 +115,9 @@ function execute_setup_routine {
 
 
 #@ SCRIPT BODY -----------------------------------------------------------------
+
+exec --ignore "loadkeys ${keymap}"
+exec --ignore "timedatectl --set-timezone ${timezone}"
 
 execute_setup_routine "fdisk"    "${dry_flag}"
 execute_setup_routine "pacstrap" "${dry_flag}"
